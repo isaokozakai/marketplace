@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Tabs, Tab, TabList, TabPanel } from 'react-tabs';
 import Web3 from 'web3';
 import logo from './logo.svg';
 import './App.css';
-import Marketplace from './contracts/Marketplace.json'
+import Marketplace from './contracts/Marketplace.json';
+import Navbar from './components/Navbar';
+import 'react-tabs/style/react-tabs.css';
+import ProductList from './components/ProductList';
+import AddProduct from './components/AddProduct';
 
 const App = () => {
   const [account, setAccount] = useState('');
@@ -61,6 +66,7 @@ const App = () => {
     setLoading(true);
     marketplace.methods.createProduct(name, price).send({ from: account })
       .once('receipt', (receipt) => {
+        console.log('done')
         setLoading(false);
       });
   };
@@ -73,53 +79,21 @@ const App = () => {
       });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const name = e.target.elements.name.value;
-    const price = window.web3.utils.toWei(e.target.elements.price.value.toString(), 'Ether')
-    createProduct(name, price)
-  }
-
   return (
     <div>
-      <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a
-          className="navbar-brand col-sm-3 col-md-2 mr-0"
-          href="http://www.dappuniversity.com/bootcamp"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Dapp University
-          </a>
-        <p>{account}</p>
-      </nav>
-      <div id="content">
-        <h1>Add Product</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group mr-sm-2">
-            <input
-              id="productName"
-              type="text"
-              name="name"
-              className="form-control"
-              placeholder="Product Name"
-              required />
-          </div>
-          <div className="form-group mr-sm-2">
-            <input
-              id="productPrice"
-              type="text"
-              name="price"
-              className="form-control"
-              placeholder="Product Price"
-              required />
-          </div>
-          <button type="submit" className="btn btn-primary">Add Product</button>
-        </form>
-        <p>&nbsp;</p>
-        <h2>Buy Product</h2>
-
-      </div>
+      <Navbar account={account} />
+      <Tabs>
+        <TabList>
+          <Tab>Product List</Tab>
+          <Tab>Add Product</Tab>
+        </TabList>
+        <TabPanel>
+          <ProductList products={products} purchaseProduct={purchaseProduct} />
+        </TabPanel>
+        <TabPanel>
+          <AddProduct createProduct={createProduct} />
+        </TabPanel>
+      </Tabs>
     </div>
   );
 }
