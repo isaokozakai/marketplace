@@ -11,6 +11,7 @@ contract Marketplace {
     uint price;
     address payable owner;
     bool purchased;
+    bool available;
   }
 
   event ProductCreated(
@@ -18,7 +19,17 @@ contract Marketplace {
     string name,
     uint price,
     address payable owner,
-    bool purchased
+    bool purchased,
+    bool available
+  );
+
+  event DeleteProduct(
+    uint id,
+    string name,
+    uint price,
+    address payable owner,
+    bool purchased,
+    bool available
   );
 
   event ProductPurchased(
@@ -26,7 +37,8 @@ contract Marketplace {
     string name,
     uint price,
     address payable owner,
-    bool purchased
+    bool purchased,
+    bool available
   );
 
   constructor() public {
@@ -37,8 +49,8 @@ contract Marketplace {
     require(bytes(_name).length > 0);
     require(_price > 0);
     productCount++;
-    products[productCount] = Product(productCount, _name, _price, msg.sender, false);
-    emit ProductCreated(productCount, _name, _price, msg.sender, false);
+    products[productCount] = Product(productCount, _name, _price, msg.sender, false, true);
+    emit ProductCreated(productCount, _name, _price, msg.sender, false, true);
   }
 
   function purchaseProduct(uint _id) public payable {
@@ -48,13 +60,28 @@ contract Marketplace {
     require(_product.id > 0 && _product.id <= productCount);
     require(msg.value >= _product.price);
     require(!_product.purchased);
+    require(_product.available);
     require(_seller != msg.sender);
 
     _product.owner = msg.sender;
     _product.purchased = true;
+    _product.available = false;
     products[_id] = _product;
 
     address(_seller).transfer(msg.value);
-    emit ProductPurchased(productCount, _product.name, _product.price, msg.sender, true);
+    emit ProductPurchased(_product.id, _product.name, _product.price, msg.sender, true, false);
+  }
+
+  function deleteProduct(uint _id) public payable {
+    Product memory _product = products[_id];
+    address payable _seller = _product.owner;
+
+    require(!_product.purchased);
+    require(_seller == msg.sender);
+
+    _product.available = false;
+    products[_id] = _product;
+
+    emit DeleteProduct(_product.id, _product.name, _product.price, msg.sender, _product.purchased, _product.available);
   }
 }
